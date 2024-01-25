@@ -10,7 +10,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Subsystems.Drivetrain;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
-
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.Compressor; 
+import edu.wpi.first.wpilibj.Solenoid; 
+import edu.wpi.first.wpilibj.PneumaticHub; 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -19,14 +23,23 @@ import edu.wpi.first.wpilibj.Joystick;
  * project.
  */
 public class Robot extends TimedRobot {
+
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
+
   public Joystick DriverStick;
   public static Drivetrain drivetrain; 
-
   double deadzone = 0.1;
+
+  Compressor compressow2 = new Compressor(PneumaticsModuleType.REVPH);
+  static PneumaticHub m_pH = new PneumaticHub(8);
+
+  Solenoid slayenoid = m_pH.makeSolenoid(1);
+  DoubleSolenoid tilt = m_pH.makeDoubleSolenoid(14, 2);
+  DoubleSolenoid grip = m_pH.makeDoubleSolenoid(0, 15);
 
 
   /**
@@ -34,7 +47,8 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   @Override
-  public void robotInit() {
+  public void robotInit(  ) {
+
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -44,6 +58,10 @@ public class Robot extends TimedRobot {
     DriverStick.setXChannel(4);
     drivetrain = new Drivetrain();
 
+    compressow2.enableDigital();
+    slayenoid.set(false);
+    tilt.set(DoubleSolenoid.Value.kForward);
+    grip.set(DoubleSolenoid.Value.kForward);
 
   }
 
@@ -55,7 +73,9 @@ public class Robot extends TimedRobot {
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+    
+  }
 
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -112,32 +132,52 @@ if (Math.abs(DriverStick.getX())>deadzone){
   turndeadzone = 0;
 }
 
-drivetrain.arcadeDrive(throttledeadzone, turndeadzone);
+drivetrain.arcadeDrive(-turndeadzone, -throttledeadzone);
   
+if(DriverStick.getRawButton(5)){
+  slayenoid.set(true);
+}
+
+if(DriverStick.getRawButton(6)){
+  slayenoid.set(false);
+}
 
 } 
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+
+  }
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+
+  }
 
   /** This function is called once when test mode is enabled. */
   @Override
-  public void testInit() {}
+  public void testInit() {
+
+  }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+
+  }
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    
+  }
 }
+

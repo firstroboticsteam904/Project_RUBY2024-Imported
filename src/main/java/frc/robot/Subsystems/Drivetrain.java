@@ -21,9 +21,9 @@ public class Drivetrain extends SubsystemBase {
   private MotorControllerGroup Lgroupmotor = new MotorControllerGroup(m_leftmotor1,m_leftmotor2, m_leftmotor3);
 
 
-  private CANSparkMax m_rightmotor1 = new CANSparkMax(2,MotorType.kBrushless);
-  private CANSparkMax m_rightmotor2 = new CANSparkMax(3,MotorType.kBrushless);
-  private CANSparkMax m_rightmotor3 = new CANSparkMax(4,MotorType.kBrushless);
+  private CANSparkMax m_rightmotor1 = new CANSparkMax(5,MotorType.kBrushless);
+  private CANSparkMax m_rightmotor2 = new CANSparkMax(6,MotorType.kBrushless);
+  private CANSparkMax m_rightmotor3 = new CANSparkMax(7,MotorType.kBrushless);
   private MotorControllerGroup Rgroupmotor = new MotorControllerGroup(m_rightmotor1,m_rightmotor2, m_rightmotor3);
   
    public DifferentialDrive m_drive = new DifferentialDrive(Lgroupmotor, Rgroupmotor);
