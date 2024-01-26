@@ -89,22 +89,33 @@ public class Robot extends TimedRobot {
   public void robotInit(  ) {
 
     /*This is where we actually add the different Autonomous selections to smartdashboard
-
     */
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
+    /*
+     * Here we are assigning our DriverStick to port 0 (port numbers can be found in the DriverStation
+     * under the USB connections section). We are also assigning an Axis channel for the X and Y directions.
+     * Channel numbers can also be found in the same location as the port numbers.
+     */
     DriverStick = new Joystick(0);
     DriverStick.setYChannel(1);
     DriverStick.setXChannel(4);
+
     drivetrain = new Drivetrain();
 
+    /*
+     * Here we turn on our compressor, and also set the starting positions for our solenoids.
+     * single solenoids are a boolean (true or false). Double Solenoids will be either a value of
+     * kForward or kReverse. You can find out which direction you want by testing the robot.
+     */
     m_Compressor.enableDigital();
     slayenoid.set(false);
     tilt.set(DoubleSolenoid.Value.kForward);
     grip.set(DoubleSolenoid.Value.kForward);
 
+    //This is a command for us to force off the LED lights on the Limelight
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);  
 
 
@@ -134,6 +145,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    // This is code written to get the selected Autonomous function from SmartDashboard, and run it.
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
@@ -142,6 +154,9 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    /*
+     * This is where we set the different cases for different autonomous mode selections.
+    */
     switch (m_autoSelected) {
       case kCustomAuto:
         // Put custom auto code here
@@ -163,29 +178,48 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-  
+  /* 
+   * these are two varibles that we have created that are technically 
+   * what our robot is reading as the input from the controller
+   * to the motor
+  */
+  double ThrottleSpeed; 
+  double TurningSpeed;
 
-  double throttledeadzone; 
-  double turndeadzone;
+  /*
+   * This is an equation that is saying if the absoulute value of
+   * the y-channel/x-channel on the DriverStick is greater than the
+   * "deadzone" varible we created earlier, then set the power
+   * of the motors to the value of the input channel and set it to
+   * the power of 3. The reason we do this is to create a quadratic
+   * formula, which will give us more precise control at higher speeds
+   */
 
   if (Math.abs(DriverStick.getY())>deadzone) {
-    throttledeadzone = Math.pow(DriverStick.getY(), 3);
+   ThrottleSpeed = Math.pow(DriverStick.getY(), 3);
   } else {
-    throttledeadzone = 0;
+   ThrottleSpeed = 0;
   }
 
 if (Math.abs(DriverStick.getX())>deadzone){
-  turndeadzone = Math.pow(DriverStick.getX(), 3);
+  TurningSpeed = Math.pow(DriverStick.getX(), 3);
 } else {
-  turndeadzone = 0;
+  TurningSpeed = 0;
 }
 
-drivetrain.arcadeDrive(-turndeadzone, -throttledeadzone);
+drivetrain.arcadeDrive(-TurningSpeed, -ThrottleSpeed);
+
+/*
+ * These are buttons we are creating on the DriverStick to shift
+ * inbetween low and high gear.
+ */
   
+ // This is the if statement to shift us into low gear
 if(DriverStick.getRawButton(5)){
   slayenoid.set(true);
 }
 
+  // This is the if statement to shift us into high gear
 if(DriverStick.getRawButton(6)){
   slayenoid.set(false);
 }
