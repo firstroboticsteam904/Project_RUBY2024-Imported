@@ -4,6 +4,12 @@
 
 package frc.robot;
 
+/* Every link below is a link to a Class that can be found toward the top of the Documentation websites of
+ * WPILib (https://github.wpilib.org/allwpilib/docs/release/java/index.html) 
+ * RevRobotics (https://codedocs.revrobotics.com/java/)
+ * CTRE (https://api.ctr-electronics.com/phoenix/release/java/)
+*/
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,23 +34,48 @@ import edu.wpi.first.units.BaseUnits;
  */
 public class Robot extends TimedRobot {
 
+  // The following final Strings below are examples of how to introduce new autonomous modes into the code
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
+
+  // This is creating a new Autonomous Chooser (aka Sendable Chooser)
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-
-  public Joystick DriverStick;
+  // Below are where we first intoduce our different subsystems (Drivetrains, Arms, Etc.)
   public static Drivetrain drivetrain; 
+
+  // Below are the joysticks for Driving and Operating
+  public Joystick DriverStick;
+
+  /*
+   * This is a deadzone to help use use when using an "Axis" type of control,
+   * to limit things like stick drift
+   */
   double deadzone = 0.1;
 
-  Compressor compressow2 = new Compressor(PneumaticsModuleType.REVPH);
+  
+  //Below are all of our components of our pneumatic system
+  /* This is an example of us creating a new Compresser, named m_Compressor, 
+   * attached to a REV Pneumatic Hub
+   */
+  Compressor m_Compressor = new Compressor(PneumaticsModuleType.REVPH);
+  // This is us creating a new Pneumatic Hub, named m_pH, with the CANBus ID: 8
   static PneumaticHub m_pH = new PneumaticHub(8);
 
+  // This is us creating a single solenoid, named "Slayenoid", it is plugged into channel 1 on the Pnuematic Hub
   Solenoid slayenoid = m_pH.makeSolenoid(1);
+
+  /*
+   * This is us creating Double Solenoids, named "tilt" & "grip".
+   * Unlike single solenoids, Double solenoids are plugged into two slots on the Pneumatic Hub
+   * 1 for a "reverse channel" and 1 for a "Forward Channel". Below you can see we have them plugged into
+   * ports 14/2 & 0/15
+   */
   DoubleSolenoid tilt = m_pH.makeDoubleSolenoid(14, 2);
   DoubleSolenoid grip = m_pH.makeDoubleSolenoid(0, 15);
 
+  //Camera stuff to be described at a later date
   NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
   NetworkTableEntry tx = table.getEntry("tx");
   NetworkTableEntry ty = table.getEntry("ty");
@@ -57,6 +88,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit(  ) {
 
+    /*This is where we actually add the different Autonomous selections to smartdashboard
+
+    */
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -66,7 +100,7 @@ public class Robot extends TimedRobot {
     DriverStick.setXChannel(4);
     drivetrain = new Drivetrain();
 
-    compressow2.enableDigital();
+    m_Compressor.enableDigital();
     slayenoid.set(false);
     tilt.set(DoubleSolenoid.Value.kForward);
     grip.set(DoubleSolenoid.Value.kForward);
