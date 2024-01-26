@@ -15,6 +15,9 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Solenoid; 
 import edu.wpi.first.wpilibj.PneumaticHub; 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -41,6 +44,10 @@ public class Robot extends TimedRobot {
   DoubleSolenoid tilt = m_pH.makeDoubleSolenoid(14, 2);
   DoubleSolenoid grip = m_pH.makeDoubleSolenoid(0, 15);
 
+  NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+  NetworkTableEntry tx = table.getEntry("tx");
+  NetworkTableEntry ty = table.getEntry("ty");
+  NetworkTableEntry ta = table.getEntry("ta");
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -63,6 +70,9 @@ public class Robot extends TimedRobot {
     tilt.set(DoubleSolenoid.Value.kForward);
     grip.set(DoubleSolenoid.Value.kForward);
 
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);  
+
+
   }
 
   /**
@@ -74,7 +84,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    
+
   }
 
   /**
@@ -117,6 +127,9 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+
+  
+
   double throttledeadzone; 
   double turndeadzone;
 
@@ -140,6 +153,11 @@ if(DriverStick.getRawButton(5)){
 
 if(DriverStick.getRawButton(6)){
   slayenoid.set(false);
+}
+
+
+if(DriverStick.getRawButton(1)){
+
 }
 
 } 
