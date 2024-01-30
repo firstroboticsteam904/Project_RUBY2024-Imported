@@ -25,6 +25,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.BaseUnits;
+import edu.wpi.first.math.controller.PIDController;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -54,6 +55,7 @@ public class Robot extends TimedRobot {
    */
   double deadzone = 0.1;
 
+  PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
   
   //Below are all of our components of our pneumatic system
   /* This is an example of us creating a new Compresser, named m_Compressor, 
@@ -226,7 +228,15 @@ if(DriverStick.getRawButton(6)){
 
 
 if(DriverStick.getRawButton(1)){
+  Double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(5);
+  SmartDashboard.putNumber("limelightTX", tx);
+  double limecontrol = Seeza.calculate(0,tx);
+  drivetrain.arcadeDrive(-limecontrol, -ThrottleSpeed);
+  
 
+} else{
+  drivetrain.arcadeDrive(-TurningSpeed, -ThrottleSpeed);
+  Seeza.reset();
 }
 
 } 
