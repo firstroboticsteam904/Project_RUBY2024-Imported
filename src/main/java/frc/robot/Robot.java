@@ -11,21 +11,27 @@ package frc.robot;
 */
 
 import edu.wpi.first.wpilibj.TimedRobot;
+
+import java.util.Optional;
+
+import edu.wpi.first.hal.AllianceStationID;
+import edu.wpi.first.hal.DriverStationJNI;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Subsystems.Drivetrain;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Compressor; 
-import edu.wpi.first.wpilibj.Solenoid; 
-import edu.wpi.first.wpilibj.PneumaticHub; 
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.units.BaseUnits;
-import edu.wpi.first.math.controller.PIDController;
+import frc.robot.Constants;
+import frc.robot.Constants.ControllerConfig;
+import frc.robot.Constants.LimelightControll;
+import frc.robot.Constants.PnuematicConfig;
+import frc.robot.Constants.DriverStationInfo;
+import java.util.Optional;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -46,42 +52,16 @@ public class Robot extends TimedRobot {
   // Below are where we first intoduce our different subsystems (Drivetrains, Arms, Etc.)
   public static Drivetrain drivetrain; 
 
+  // Below are where we introduce our different classes in Constants.java
+  public Constants constants;
+  public ControllerConfig controllerConfig;
+  public LimelightControll limelightControll;
+  public PnuematicConfig pnuematicConfig;
+  public DriverStationInfo driverstationInfo;
+
+
   // Below are the joysticks for Driving and Operating
   public Joystick DriverStick;
-
-  /*
-   * This is a deadzone to help use use when using an "Axis" type of control,
-   * to limit things like stick drift
-   */
-  double deadzone = 0.1;
-
-  PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
-  
-  //Below are all of our components of our pneumatic system
-  /* This is an example of us creating a new Compresser, named m_Compressor, 
-   * attached to a REV Pneumatic Hub
-   */
-  Compressor m_Compressor = new Compressor(PneumaticsModuleType.REVPH);
-  // This is us creating a new Pneumatic Hub, named m_pH, with the CANBus ID: 8
-  static PneumaticHub m_pH = new PneumaticHub(8);
-
-  // This is us creating a single solenoid, named "Slayenoid", it is plugged into channel 1 on the Pnuematic Hub
-  Solenoid slayenoid = m_pH.makeSolenoid(1);
-
-  /*
-   * This is us creating Double Solenoids, named "tilt" & "grip".
-   * Unlike single solenoids, Double solenoids are plugged into two slots on the Pneumatic Hub
-   * 1 for a "reverse channel" and 1 for a "Forward Channel". Below you can see we have them plugged into
-   * ports 14/2 & 0/15
-   */
-  DoubleSolenoid tilt = m_pH.makeDoubleSolenoid(14, 2);
-  DoubleSolenoid grip = m_pH.makeDoubleSolenoid(0, 15);
-
-  //Camera stuff to be described at a later date
-  NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-  NetworkTableEntry tx = table.getEntry("tx");
-  NetworkTableEntry ty = table.getEntry("ty");
-  NetworkTableEntry ta = table.getEntry("ta");
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -89,6 +69,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit(  ) {
+
 
     /*This is where we actually add the different Autonomous selections to smartdashboard
     */
@@ -98,29 +79,44 @@ public class Robot extends TimedRobot {
 
     /*
      * Here we are assigning our DriverStick to port 0 (port numbers can be found in the DriverStation
-     * under the USB connections section). We are also assigning an Axis channel for the X and Y directions.
-     * Channel numbers can also be found in the same location as the port numbers.
+     * under the USB connections section). 
      */
-    DriverStick = new Joystick(0);
-    DriverStick.setYChannel(1);
-    DriverStick.setXChannel(4);
+    DriverStick = new Joystick(controllerConfig.DriverStickPort);
 
+    // This is us creating new instances of our subsystems
     drivetrain = new Drivetrain();
+
+    //this is us creating new instances of our constants classes
+    constants = new Constants();
+    controllerConfig = new ControllerConfig();
+    limelightControll = new LimelightControll();
+    pnuematicConfig = new PnuematicConfig();
+    driverstationInfo = new DriverStationInfo();
+
 
     /*
      * Here we turn on our compressor, and also set the starting positions for our solenoids.
      * single solenoids are a boolean (true or false). Double Solenoids will be either a value of
-     * kForward or kReverse. You can find out which direction you want by testing the robot.
+     * Forward or Reverse. You can find out which direction you want by testing the robot.
      */
-    m_Compressor.enableDigital();
-    slayenoid.set(false);
-    tilt.set(DoubleSolenoid.Value.kForward);
-    grip.set(DoubleSolenoid.Value.kForward);
+    pnuematicConfig.m_Compressor.enableDigital();
+    pnuematicConfig.slayenoid.set(false);
+    pnuematicConfig.tilt.set(pnuematicConfig.Forward);
+    pnuematicConfig.grip.set(pnuematicConfig.Forward);
 
     //This is a command for us to force off the LED lights on the Limelight
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);  
+    limelightControll.LEDoff.booleanValue();
 
-
+      if(driverstationInfo.allianceColor.isPresent()){
+        if(driverstationInfo.allianceColor.get() == Alliance.Red){
+        limelightControll.RedPipeline.booleanValue();
+        SmartDashboard.putString("Alliance Color", "Red");
+      }
+        if(driverstationInfo.allianceColor.get() == Alliance.Blue){
+        limelightControll.BluePipeline.booleanValue();
+        SmartDashboard.putString("Alliance Color", "Blue");
+      }
+    }
   }
 
   /**
@@ -132,7 +128,16 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-
+    if(driverstationInfo.allianceColor.isPresent()){
+      if(driverstationInfo.allianceColor.get() == Alliance.Red){
+       limelightControll.RedPipeline.booleanValue();
+       SmartDashboard.putString("Alliance Color", "Red");
+      }
+      if(driverstationInfo.allianceColor.get() == Alliance.Blue){
+       limelightControll.BluePipeline.booleanValue();
+       SmartDashboard.putString("Alliance Color", "Blue");
+      }
+    }
   }
 
   /**
@@ -180,13 +185,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-  /* 
-   * these are two varibles that we have created that are technically 
-   * what our robot is reading as the input from the controller
-   * to the motor
-  */
-  double ThrottleSpeed; 
-  double TurningSpeed;
+
 
   /*
    * This is an equation that is saying if the absoulute value of
@@ -197,19 +196,24 @@ public class Robot extends TimedRobot {
    * formula, which will give us more precise control at higher speeds
    */
 
-  if (Math.abs(DriverStick.getY())>deadzone) {
-   ThrottleSpeed = Math.pow(DriverStick.getY(), 3);
+  if (Math.abs(DriverStick.getRawAxis(controllerConfig.DriverYAxis))>constants.deadzone) {
+   controllerConfig.ThrottleSpeed = Math.pow(DriverStick.getRawAxis(controllerConfig.DriverYAxis), 3);
   } else {
-   ThrottleSpeed = 0;
+   controllerConfig.ThrottleSpeed = 0;
   }
 
-if (Math.abs(DriverStick.getX())>deadzone){
-  TurningSpeed = Math.pow(DriverStick.getX(), 3);
-} else {
-  TurningSpeed = 0;
-}
+  if (Math.abs(DriverStick.getRawAxis(controllerConfig.DriverXAxis))>constants.deadzone){
+  controllerConfig.TurningSpeed = Math.pow(DriverStick.getRawAxis(controllerConfig.DriverXAxis), 3);
+  } // Here we create an else if that when button 1 is held down it gives turning power to limelight
+    else if(DriverStick.getRawButton(1)){ 
+  SmartDashboard.putNumber("limelightTX", limelightControll.TX);
+  controllerConfig.TurningSpeed = -limelightControll.limecontrol;
+  } else {
+  controllerConfig.TurningSpeed = 0;
+  limelightControll.Seeza.reset();
+  }
 
-drivetrain.arcadeDrive(-TurningSpeed, -ThrottleSpeed);
+  drivetrain.arcadeDrive(-controllerConfig.TurningSpeed, -controllerConfig.ThrottleSpeed);
 
 /*
  * These are buttons we are creating on the DriverStick to shift
@@ -218,26 +222,20 @@ drivetrain.arcadeDrive(-TurningSpeed, -ThrottleSpeed);
   
  // This is the if statement to shift us into low gear
 if(DriverStick.getRawButton(5)){
-  slayenoid.set(true);
+  pnuematicConfig.slayenoid.set(true);
+  SmartDashboard.putString("Current Gear", "Low Gear");
+  System.out.printf("Low Gear?", true);
 }
 
   // This is the if statement to shift us into high gear
 if(DriverStick.getRawButton(6)){
-  slayenoid.set(false);
+  pnuematicConfig.slayenoid.set(false);
+  SmartDashboard.putString("Current Gear", "High Gear");
+  System.out.printf("High Gear?", true);
 }
 
 
-if(DriverStick.getRawButton(1)){
-  Double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(5);
-  SmartDashboard.putNumber("limelightTX", tx);
-  double limecontrol = Seeza.calculate(0,tx);
-  drivetrain.arcadeDrive(-limecontrol, -ThrottleSpeed);
-  
 
-} else{
-  drivetrain.arcadeDrive(-TurningSpeed, -ThrottleSpeed);
-  Seeza.reset();
-}
 
 } 
 
@@ -253,28 +251,5 @@ if(DriverStick.getRawButton(1)){
 
   }
 
-  /** This function is called once when test mode is enabled. */
-  @Override
-  public void testInit() {
-
-  }
-
-  /** This function is called periodically during test mode. */
-  @Override
-  public void testPeriodic() {
-
-  }
-
-  /** This function is called once when the robot is first started up. */
-  @Override
-  public void simulationInit() {
-
-  }
-
-  /** This function is called periodically whilst in simulation. */
-  @Override
-  public void simulationPeriodic() {
-    
-  }
 }
 

@@ -23,7 +23,8 @@ import com.revrobotics.CANSparkBase.ExternalFollower;
 
 public class Drivetrain extends SubsystemBase {
 
-  //Creates 
+  //Creates 3 different brushess motors that are connected to SparkMax Motorcontrollers.
+  //each ID is determined by CANBus ID set in Rev Hardware application
   private CANSparkMax m_leftmotor1 = new CANSparkMax(2,MotorType.kBrushless);
   private CANSparkMax m_leftmotor2 = new CANSparkMax(3,MotorType.kBrushless);
   private CANSparkMax m_leftmotor3 = new CANSparkMax(4,MotorType.kBrushless);
