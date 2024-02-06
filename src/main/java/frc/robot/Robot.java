@@ -16,6 +16,9 @@ import java.util.Optional;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.hal.DriverStationJNI;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -64,6 +67,15 @@ public class Robot extends TimedRobot {
   // Below are the joysticks for Driving and Operating
   public Joystick DriverStick;
 
+  PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
+
+    //Camera stuff to be described at a later date
+  NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+  NetworkTableEntry tx = table.getEntry("tx");
+  
+
+
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -109,6 +121,10 @@ public class Robot extends TimedRobot {
 
     //This is a command for us to force off the LED lights on the Limelight
     limelightControll.LEDoff.booleanValue();
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(1);
+
+
+
 
       if(driverstationInfo.allianceColor.isPresent()){
         if(driverstationInfo.allianceColor.get() == Alliance.Red){
@@ -141,17 +157,20 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     if(driverstationInfo.allianceColor.isPresent()){
       if(driverstationInfo.allianceColor.get() == DriverStation.Alliance.Red){
-       limelightControll.RedPipeline.booleanValue();
+       //limelightControll.RedPipeline.booleanValue();
+       NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
        SmartDashboard.putString("Alliance Color", "Red");
        System.out.println("(Red Alliance)" + limelightControll.RedPipeline);
       }
       if(driverstationInfo.allianceColor.get() == Alliance.Blue){
-       limelightControll.BluePipeline.booleanValue();
+       //limelightControll.BluePipeline.booleanValue();
+       NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(1);
        SmartDashboard.putString("Alliance Color", "Blue");
         System.out.println("(Blue Alliance)" + limelightControll.BluePipeline);
       }
     } else{
-       limelightControll.DefaultPipeline.booleanValue();
+       //limelightControll.DefaultPipeline.booleanValue();
+      NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
        System.out.print(limelightControll.DefaultPipeline.booleanValue());
        System.out.println("(Default Alliance)" + limelightControll.DefaultPipeline);
       //System.out.print("Debug Reading Periodic");
@@ -232,15 +251,16 @@ public class Robot extends TimedRobot {
   //System.out.print("limelight control reading");
   }
 
-  if(DriverStick.getRawButton(1)){ 
-  SmartDashboard.putNumber("limelightTX", limelightControll.TX);
-  //controllerConfig.TurningSpeed = -limelightControll.limecontrol;
-  drivetrain.arcadeDrive(-limelightControll.limecontrol, -controllerConfig.ThrottleSpeed);
-  System.out.print("(limelight control reading)");
-  } else {
-    limelightControll.Seeza.reset();
+  if(DriverStick.getRawButton(1)){
+    Double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(5);
+    SmartDashboard.putNumber("limelightTX", tx);
+    double limecontrol = Seeza.calculate(0,tx);
+    drivetrain.arcadeDrive(-limecontrol, -controllerConfig.ThrottleSpeed);
+    
+  
+  } else{
     drivetrain.arcadeDrive(-controllerConfig.TurningSpeed, -controllerConfig.ThrottleSpeed);
-    System.out.print("(RegControlls, Seeza Reset()");
+    Seeza.reset();
   }
 
 /*
