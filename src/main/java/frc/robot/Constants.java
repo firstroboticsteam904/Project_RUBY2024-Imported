@@ -33,9 +33,10 @@ public class Constants {
 
 
     public static class DriverStationInfo{
-        public Optional<Alliance> allianceColor = DriverStation.getAlliance();
+        public static Optional<Alliance> allianceColor = DriverStation.getAlliance();
         public AllianceStationID allianceStationID = DriverStationJNI.getAllianceStation();
     }
+    
 
     //Below are all of our different 
     public static class ControllerConfig{
@@ -57,14 +58,15 @@ public class Constants {
 
     //Below are all of our components of our Limelight
     public static class LimelightControll{
-        public Boolean LEDoff = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
-        public final NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-        public final NetworkTableEntry tx = table.getEntry("tx");
-        public final Double TX = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(5);
-        public Boolean RedPipeline = NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
-        public Boolean BluePipeline = NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(1);
-        public PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
-        public double limecontrol = Seeza.calculate(0, TX);
+        public final Boolean LEDoff = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+        public static NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+        public static NetworkTableEntry tx = table.getEntry("tx");
+        public static Double TX = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(5);
+        public static Boolean DefaultPipeline = NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
+        public static Boolean RedPipeline = NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
+        public static Boolean BluePipeline = NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(1);
+        public static PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
+        public static double limecontrol = Seeza.calculate(0, TX);
 
     }
 

@@ -40,6 +40,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
  * project.
  */
 public class Robot extends TimedRobot {
+       
 
   // The following final Strings below are examples of how to introduce new autonomous modes into the code
   private static final String kDefaultAuto = "Default";
@@ -76,6 +77,13 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+   
+    //this is us creating new instances of our constants classes
+    constants = new Constants();
+    controllerConfig = new ControllerConfig();
+    limelightControll = new LimelightControll();
+    pnuematicConfig = new PnuematicConfig();
+    driverstationInfo = new DriverStationInfo();
 
     /*
      * Here we are assigning our DriverStick to port 0 (port numbers can be found in the DriverStation
@@ -86,12 +94,7 @@ public class Robot extends TimedRobot {
     // This is us creating new instances of our subsystems
     drivetrain = new Drivetrain();
 
-    //this is us creating new instances of our constants classes
-    constants = new Constants();
-    controllerConfig = new ControllerConfig();
-    limelightControll = new LimelightControll();
-    pnuematicConfig = new PnuematicConfig();
-    driverstationInfo = new DriverStationInfo();
+
 
 
     /*
@@ -111,12 +114,20 @@ public class Robot extends TimedRobot {
         if(driverstationInfo.allianceColor.get() == Alliance.Red){
         limelightControll.RedPipeline.booleanValue();
         SmartDashboard.putString("Alliance Color", "Red");
+        System.out.printf("Red Alliance Pipeline", true);
       }
         if(driverstationInfo.allianceColor.get() == Alliance.Blue){
         limelightControll.BluePipeline.booleanValue();
         SmartDashboard.putString("Alliance Color", "Blue");
+        System.out.printf("Blue Alliance Pipeline", true);
       }
+    } else{
+      limelightControll.DefaultPipeline.booleanValue();
+      SmartDashboard.putString("Alliance Color", "Default");
+      System.out.printf("Default Pipeline", true);
+      //System.out.print("Debug Reading");
     }
+    
   }
 
   /**
@@ -129,14 +140,21 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     if(driverstationInfo.allianceColor.isPresent()){
-      if(driverstationInfo.allianceColor.get() == Alliance.Red){
+      if(driverstationInfo.allianceColor.get() == DriverStation.Alliance.Red){
        limelightControll.RedPipeline.booleanValue();
        SmartDashboard.putString("Alliance Color", "Red");
+       System.out.println("(Red Alliance)" + limelightControll.RedPipeline);
       }
       if(driverstationInfo.allianceColor.get() == Alliance.Blue){
        limelightControll.BluePipeline.booleanValue();
        SmartDashboard.putString("Alliance Color", "Blue");
+        System.out.println("(Blue Alliance)" + limelightControll.BluePipeline);
       }
+    } else{
+       limelightControll.DefaultPipeline.booleanValue();
+       System.out.print(limelightControll.DefaultPipeline.booleanValue());
+       System.out.println("(Default Alliance)" + limelightControll.DefaultPipeline);
+      //System.out.print("Debug Reading Periodic");
     }
   }
 
@@ -198,22 +216,32 @@ public class Robot extends TimedRobot {
 
   if (Math.abs(DriverStick.getRawAxis(controllerConfig.DriverYAxis))>constants.deadzone) {
    controllerConfig.ThrottleSpeed = Math.pow(DriverStick.getRawAxis(controllerConfig.DriverYAxis), 3);
+   System.out.print("(Manual Y-Axis)");
   } else {
    controllerConfig.ThrottleSpeed = 0;
+   System.out.print("(Y-Axis Stopped)");
   }
 
   if (Math.abs(DriverStick.getRawAxis(controllerConfig.DriverXAxis))>constants.deadzone){
   controllerConfig.TurningSpeed = Math.pow(DriverStick.getRawAxis(controllerConfig.DriverXAxis), 3);
+  System.out.print("(Manual X-Axis)");
   } // Here we create an else if that when button 1 is held down it gives turning power to limelight
-    else if(DriverStick.getRawButton(1)){ 
-  SmartDashboard.putNumber("limelightTX", limelightControll.TX);
-  controllerConfig.TurningSpeed = -limelightControll.limecontrol;
-  } else {
+   else {
   controllerConfig.TurningSpeed = 0;
-  limelightControll.Seeza.reset();
+  System.out.print("(X-Axis Stopped)");
+  //System.out.print("limelight control reading");
   }
 
-  drivetrain.arcadeDrive(-controllerConfig.TurningSpeed, -controllerConfig.ThrottleSpeed);
+  if(DriverStick.getRawButton(1)){ 
+  SmartDashboard.putNumber("limelightTX", limelightControll.TX);
+  //controllerConfig.TurningSpeed = -limelightControll.limecontrol;
+  drivetrain.arcadeDrive(-limelightControll.limecontrol, -controllerConfig.ThrottleSpeed);
+  System.out.print("(limelight control reading)");
+  } else {
+    limelightControll.Seeza.reset();
+    drivetrain.arcadeDrive(-controllerConfig.TurningSpeed, -controllerConfig.ThrottleSpeed);
+    System.out.print("(RegControlls, Seeza Reset()");
+  }
 
 /*
  * These are buttons we are creating on the DriverStick to shift
@@ -224,14 +252,14 @@ public class Robot extends TimedRobot {
 if(DriverStick.getRawButton(5)){
   pnuematicConfig.slayenoid.set(true);
   SmartDashboard.putString("Current Gear", "Low Gear");
-  System.out.printf("Low Gear?", true);
+  System.out.print("(Low Gear)?");
 }
 
   // This is the if statement to shift us into high gear
 if(DriverStick.getRawButton(6)){
   pnuematicConfig.slayenoid.set(false);
   SmartDashboard.putString("Current Gear", "High Gear");
-  System.out.printf("High Gear?", true);
+  System.out.print("(High Gear?)");
 }
 
 
@@ -248,6 +276,16 @@ if(DriverStick.getRawButton(6)){
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
+
+  }
+
+  @Override
+  public void simulationInit(){
+
+  }
+
+  @Override
+  public void simulationPeriodic(){
 
   }
 
