@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Subsystems.Drivetrain;
+import frc.robot.Subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.Constants;
@@ -55,6 +56,7 @@ public class Robot extends TimedRobot {
 
   // Below are where we first intoduce our different subsystems (Drivetrains, Arms, Etc.)
   public static Drivetrain drivetrain; 
+  public static Shooter shooter; 
 
   // Below are where we introduce our different classes in Constants.java
   public Constants constants;
@@ -66,6 +68,7 @@ public class Robot extends TimedRobot {
 
   // Below are the joysticks for Driving and Operating
   public Joystick DriverStick;
+  public Joystick OperatorStick;
 
   PIDController Seeza = new PIDController(0.007, 0.0045, 0.0007);
 
@@ -102,9 +105,11 @@ public class Robot extends TimedRobot {
      * under the USB connections section). 
      */
     DriverStick = new Joystick(controllerConfig.DriverStickPort);
+    OperatorStick = new Joystick(controllerConfig.OperatorStickPort);
 
     // This is us creating new instances of our subsystems
     drivetrain = new Drivetrain();
+    shooter = new Shooter();
 
 
 
@@ -282,7 +287,11 @@ if(DriverStick.getRawButton(6)){
   System.out.print("(High Gear?)");
 }
 
-
+if (OperatorStick.getRawButton(6)) {
+  shooter.shooterspeed(1.0);
+} else{
+  shooter.shooterspeed(0);
+}
 
 
 } 
