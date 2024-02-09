@@ -51,7 +51,7 @@ public class Constants {
             public double ThrottleSpeed; 
             public double TurningSpeed;
 
-        public final static int OperatorStickPort = 0;
+        public final int OperatorStickPort = 0;
 
 
     }
